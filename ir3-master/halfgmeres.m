@@ -40,7 +40,7 @@ for iter = 1:max_it,                              % begin iteration
     
     V(:,1) = r / norm( r );
     s = norm( r )*e1;
-    for i = 1:m                     % construct orthonormal basis via GS
+    for i = 1:m,                     % construct orthonormal basis via GS
         its = its+1;
         vcur = V(:,i);      
         
@@ -48,13 +48,13 @@ for iter = 1:max_it,                              % begin iteration
         
         w = half(vcur);
       
-        for k = 1:i
+        for k = 1:i,
             H(k,i)= w'*V(:,k);
             w = w - H(k,i)*V(:,k);
         end
         H(i+1,i) = norm( w );
         V(:,i+1) = w / H(i+1,i);
-        for k = 1:i-1                              % apply Givens rotation
+        for k = 1:i-1,                              % apply Givens rotation
             temp     =  cs(k)*H(k,i) + sn(k)*H(k+1,i);
             H(k+1,i) = -sn(k)*H(k,i) + cs(k)*H(k+1,i);
             H(k,i)   = temp;
@@ -66,7 +66,7 @@ for iter = 1:max_it,                              % begin iteration
         H(i,i) = cs(i)*H(i,i) + sn(i)*H(i+1,i);
         H(i+1,i) = 0.0;
         error((iter-1)*m+i+1)  = abs(s(i+1)) / bnrm2;
-        if ( error((iter-1)*m+i+1) <= tol )                        % update approximation
+        if ( error((iter-1)*m+i+1) <= tol ),                        % update approximation
             y = H(1:i,1:i) \ s(1:i);                 % and exit
             addvec = V(:,1:i)*y;
             x = x + addvec;
@@ -83,10 +83,10 @@ for iter = 1:max_it,                              % begin iteration
     r = half(r);
     s(i+1) = norm(r);
     error = [error,s(i+1) / bnrm2];                        % check convergence
-    if ( error(end) <= tol ), break, end
+    if ( error(end) <= tol ), break, end;
 end
 
-if ( error(end) > tol ) flag = 1; end                 % converged
+if ( error(end) > tol ) flag = 1; end;                 % converged
 
 
 

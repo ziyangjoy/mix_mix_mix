@@ -15,48 +15,49 @@
 
 % load the tensor for test
 load aminoacids.mat
+
 % test 1: using different precision for khatri-rao product: 
 % error is measured by 1-fit.
 max_iters = [1,5,10,20,50];
 error_list_0 = [];
 error_list_2 = [];
-for i = max_iters
-    [~,~,~,fit] = cp_als_new(X,50,0,2,2,2,0,3,0.0001,'maxiters',i,'printitn',0);
-    error0 = 1-fit;
-    error_list_0(end+1)=error0;
-    [~,~,~,fit2] = cp_als_new(X,50,0,2,2,2,2,3,0.0001,'maxiters',i,'printitn',0);
-    error2 = 1-fit2;
-    error_list_2(end+1)=error2;
-end
+% for i = max_iters
+%     [~,~,~,fit] = cp_als_new(X,50,0,2,2,2,0,3,0.0001,'maxiters',i,'printitn',0);
+%     error0 = 1-fit;
+%     error_list_0(end+1)=error0;
+%     [~,~,~,fit2] = cp_als_new(X,50,0,2,2,2,2,3,0.0001,'maxiters',i,'printitn',0);
+%     error2 = 1-fit2;
+%     error_list_2(end+1)=error2;
+% end
 % number of max iterations versus error
-figure
-title('different khatri-rao product precision')
-plot(max_iters,error_list_0,'color','r')
-hold on
-plot(max_iters,error_list_2,'color','g')
+% figure
+% title('different khatri-rao product precision')
+% plot(max_iters,error_list_0,'color','r')
+% hold on
+% plot(max_iters,error_list_2,'color','g')
 
 % from test 1 we can see that using different precision for khatri-rao
 % product doesn't affect the convergence a lot.
 
 % test 2: using different precision for factorization
 
-% for i = max_iters
-%     [~,~,~,fit] = cp_als_new(X,20,0,0,2,2,2,3,0.0001,'maxiters',i,'printitn',0);
-%     error0 = 1-fit;
-%     error_list_0(end+1)=error0;
-%     [~,~,~,fit2] = cp_als_new(X,20,0,2,2,2,2,3,0.0001,'maxiters',i,'printitn',0);
-%     error2 = 1-fit2;
-%     error_list_2(end+1)=error2;
-% end
+for i = max_iters
+    [~,~,~,fit] = cp_als_new(X,20,0,0,2,2,2,3,0.0001,'maxiters',i,'printitn',0);
+    error0 = 1-fit;
+    error_list_0(end+1)=error0;
+    [~,~,~,fit2] = cp_als_new(X,20,0,2,2,2,2,3,0.0001,'maxiters',i,'printitn',0);
+    error2 = 1-fit2;
+    error_list_2(end+1)=error2;
+end
 % 
 % % number of max iterations versus error
 % % low factorization precision sometimes leads to bad gmres result
 % 
-% figure
-% title('different factorization precision')
-% plot(max_iters,error_list_0,'color','r')
-% hold on
-% plot(max_iters,error_list_2,'color','g')
+figure
+title('different factorization precision')
+plot(max_iters,error_list_0,'color','r')
+hold on
+plot(max_iters,error_list_2,'color','g')
 
 
 

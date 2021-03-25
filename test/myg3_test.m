@@ -1,3 +1,5 @@
+% result is that: when condition number is larger than 1e6, we cannot get
+% accurate result. 
 condnums_single = [1e1,1e2,1e3,1e4,1e5,1e6,1e7];
 condnum_string = [string('condition number = 1e1'),string('condition number = 1e2'),string('condition number = 1e3'),string('condition number = 1e4'),string('condition number = 1e5'),string('condition number = 1e6'),string('condition number = 1e7')];
 iterations = [1,2,3]; % usually converge in three iterations 
@@ -12,8 +14,8 @@ for i = 1:numel(condnums_single)
     for j = iterations
         A = gallery('randsvd',n,condnums_single(i),3);
         b = rand(n,1);
-        real_value = myg3(A,b,2,2,2,j,0.0001);
-        half_value = myg3(A,b,0,2,2,j,0.0001);
+        real_value = gmres3(A,b,2,2,2,j,0.0001);
+        half_value = gmres3(A,b,0,2,2,j,0.0001);
         error_double = norm(A*real_value-b,'fro');
         error_half = norm(A*half_value-b,'fro');
         error_list_double(end+1) = error_double;

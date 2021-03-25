@@ -1,4 +1,5 @@
 function x = gmres3(A,b,precf,precw,precr,iter_max,gtol)
+A = SimpleScaling()
 dA = double(A);
 sA = single(A);
 hA = half(A);
