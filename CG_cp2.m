@@ -6,6 +6,9 @@ error = [norm(minus(full(U),full(X)))];
 G = gradient_calc2(prec, X,A);
 D = cellfun(@(x)(-x),G,'UniformOutput',0);
 for i = 1:maxiter
+    %New step size
+%     step = max(step/1.5,1e-1);
+   
     Aold = A;
     Dold = D;
     U = ktensor(A);
@@ -27,6 +30,10 @@ for i = 1:maxiter
         vecGsD = double(reshape(GsD{k},a*b,1));
         hessian_cell{k} = (vecGsD - Gold_cell{k})/step*Dnorm;
         alpha = -Gold_cell{k}'*vecD{k}/(vecD{k}'*hessian_cell{k});
+        
+        %set a upper bound for alpha
+        alpha = max(min(alpha, 1000),0.01);
+        
         vecAk = vecAk + alpha * vecD{k};
         Ak = reshape(vecAk,a,b);
         A{k} = Ak;

@@ -1,11 +1,12 @@
-function [u,e,T] = SGD_outer2(prec, X,iterCG,iterSG,tol,R,step)
+function [u,e,T] = SGD_outer2(prec,initial, X,iterCG,iterSG,tol,R,step)
 s = size(X);
 N = ndims(X);
-A = cell(N,1);
+% A = cell(N,1);
+A = initial;
 e = [];
-for i = 1:N
-     A{i} = rand(s(i),R);
-end
+% for i = 1:N
+%      A{i} = randn(s(i),R);
+% end
 tic;
 T = zeros(1,iterSG);
 for i = 1:iterSG
@@ -15,4 +16,4 @@ for i = 1:iterSG
 end
 u = A;
 normX = norm(X);
-e = e/normX;
+% e = e/normX;
