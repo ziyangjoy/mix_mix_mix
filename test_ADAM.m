@@ -61,8 +61,8 @@ for t = 1:20000
     end
     G = gradient_M(prec,U,X,n);
     for j = 1:N
-       m{j} = beta_1*m{j} + (1-beta_1)*(G{j})/M;
-       v{j} = beta_2*v{j} + (sqrt(1-beta_2)*(G{j})/M).^2;
+       m{j} = beta_1*m{j} + (1-beta_1)*double(G{j})/M;
+       v{j} = beta_2*v{j} + (sqrt(1-beta_2)*double(G{j})/M).^2;
        
        m_tilde{j} = m{j}/(1-beta_1^t);
        v_tilde{j} = v{j}/(1-beta_2^t);
