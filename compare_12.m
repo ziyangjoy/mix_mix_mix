@@ -1,6 +1,6 @@
 %load aminoacids.mat
 N = 3;
-for size = [10]
+for size = [50]
 %     X = randi(size,size/2,size*2,size);
 %     X = randn(size/2,size*2,size);
 %     X = tensor(X);
@@ -13,7 +13,6 @@ for size = [10]
     end
     X = ktensor(A);
     
-%     load('X20.mat');
     
     iterCG = 10;
     iterSG = 50;
