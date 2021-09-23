@@ -31,7 +31,6 @@ for i = 1:M
 %    p = prod(mat);
 
    for j = 1:N
-       G{j}(ind_i{j},:) = G{j}(ind_i{j},:) + 2*prod(mat([1:j-1,j+1:end],:))*v;
-%        G{j}(ind_i{j},:) = G{j}(ind_i{j},:) + 2*p./U{j}(ind_i{j},:)*v;
+       G{j}(ind_i{j},:) = G{j}(ind_i{j},:) + 2*prod(mat([1:j-1,j+1:end],:))*v/M;
    end
 end
