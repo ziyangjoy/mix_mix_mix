@@ -7,8 +7,8 @@ N = 3;
 
 prec = 0;
 
-size = 40;
-r = 30;
+size = 50;
+r = 40;
 
 s = [size/2,size*2,size];
 
@@ -40,7 +40,7 @@ legend('half precision','double precision')
 
 xlabel('number of iterations')
 ylabel('error')
-% title('d=[100,50,25], r=40')
+title('d=[80,40,20], r=30')
 
 
 
