@@ -1,9 +1,9 @@
 function [U,error_all] = ADAM(prec,U,X)
 
-rng(12);
+rng(15);
 
 s = size(X);
-M = 200;
+M = 100;
 
 beta_1 = 0.9;
 beta_2 = 0.999;
