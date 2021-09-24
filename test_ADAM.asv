@@ -40,7 +40,7 @@ legend('half precision','double precision')
 
 xlabel('number of iterations')
 ylabel('error')
-title('d=[100,50,25], r=40')
+title('d=[100,50,50,25], r=10')
 
 
 
