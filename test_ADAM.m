@@ -17,7 +17,7 @@ for i = 1:N
     A{i} = randn(s(i),r);
 end
 X = ktensor(A);
-X = tensor(double(X)/max(abs(double(X(:)))));
+% X = tensor(double(X)/max(abs(double(X(:)))));
 
 
 U = cell(N,1);
@@ -40,7 +40,7 @@ legend('half precision','double precision')
 
 xlabel('number of iterations')
 ylabel('error')
-title('d=[100,50,25], r=40')
+% title('d=[100,50,25], r=40')
 
 
 

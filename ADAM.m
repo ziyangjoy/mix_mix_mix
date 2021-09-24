@@ -3,7 +3,7 @@ function [U,error_all] = ADAM(prec,U,X)
 rng(15);
 
 s = size(X);
-M = 100;
+M = 50;
 
 beta_1 = 0.9;
 beta_2 = 0.999;
