@@ -1,35 +1,59 @@
 %load aminoacids.mat
+clear all;
+
+addpath('./chop');
+addpath('./tensor_toolbox-v3.2');
+
+rng(12);
+
 N = 3;
 
-size = 10;
 
-s = [size/2,size*2,size,size/2,size/2];
-r = 10;
+size_t = 80;
+r = 30;
+
+s = [size_t,size_t*2,size_t/2,size_t,size_t];
+
+
 A = cell(N,1);
 for i = 1:N
     A{i} = randn(s(i),r);
+%     A{i} = 2*rand(s(i),r)-1;
+%     A{i} = A{i}/max(A{i}(:));
 end
 X = ktensor(A);
+X = double(tensor(X));
 
 
 U = cell(N,1);
-
 for i = 1:N
     U{i} = randn(s(i),r);
+%     U{i} = U{i}/max(U{i}(:));
+%     U{i} = ones(s(i),r);
 end
 
-prec = 1;
-M = 100;
-alpha = 0.01;
+% load('SGD_result_size50r20_double_newton.mat')
+% U = U_result{88};
 
-for i = 1:100
-    G = gradient_M(prec,U,X,M);
-    for j = 1:N
-        U{j} = U{j} - alpha*G{j};
-    end
-end
+% [U_half,error_half] = SGD(2,U,X);
+[U_full,error_full] = SGD_epoch(2,U,X);
+% [U_half,error_half] = SGD_epoch(0,U,X);
+% [U_half,error_half] = SGD_newsample_epoch(2,U,X);
 
-U = cellfun(@(x)double(x),U,'UniformOutput',0);
-nX = ktensor(U);
 
-error = norm(minus(full(nX),full(X)));
+% normX = norm(X);
+% maxiter = 20000;
+% figure
+% semilogy(error_half(1:maxiter)/normX)
+% 
+% hold on
+% semilogy(error_full(1:maxiter)/normX)
+% 
+% legend('half precision','double precision')
+% 
+% xlabel('number of iterations')
+% ylabel('error')
+% title('d=[100,50,25], r=40')
+
+
+
