@@ -6,7 +6,7 @@ addpath('./tensor_toolbox-v3.2');
 
 rng(41);
 
-N = 3;
+N = 4;
 
 
 size_t = 50;
@@ -31,7 +31,8 @@ for i = 1:N
 end
 X = ktensor(A);
 X = double(tensor(X));
-X = X/max(abs(X(:)))*15;
+c = 15/max(abs(X(:)));
+X = X*c;
 
 X = X + 0.000*randn(s(1:N));
 
@@ -41,14 +42,14 @@ U = cell(N,1);
 % w = 1;
 % r = r + 5;
 for i = 1:N
-%     U{i} = A{i} + 0.05*randn(s(i),r);
-    U{i} = randn(s(i),r)/2;
+    U{i} = A{i}*nthroot(c,N) + 0.01*randn(s(i),r);
+%     U{i} = randn(s(i),r)/2;
 %     w = w.*vecnorm(U{i}).'/5;
 %     U{i} = U{i}./vecnorm(U{i})*5;
 %     U{i} = U{i}/max(U{i}(:));
 %     U{i} = ones(s(i),r);
 end
-
+% U{1} = U{1}/78.7520*15;
 
 % load('SGD_result_size50r20_double_newton.mat')
 % U = U_result{88};

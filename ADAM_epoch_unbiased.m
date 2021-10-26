@@ -17,7 +17,7 @@ fp.params = [5,3] ;
 fp.round = 5;
 % fp.params = [5,3] ;
 
-alpha = 0.1;
+alpha = 0.0001;
 beta_1 = 0.9;
 beta_2 = 0.999;
 
@@ -131,7 +131,7 @@ for t = 1:300
        fail = fail + 1;
        if fail == 1
             fail = 0;
-            alpha = max(alpha * 0.1, 0.1^6);
+            alpha = max(alpha * 0.1, 0.1^4);
        end
       
    end
