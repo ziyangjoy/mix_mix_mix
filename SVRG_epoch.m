@@ -1,4 +1,4 @@
-function [U,error_all] = SGD_epoch(prec,U,X)
+function [U,error_all] = SVRG_epoch(prec,U,X)
 
 rng(12);
 
@@ -14,7 +14,7 @@ M = ceil(s*0.1);
 
 
 
-alpha = 0.01;
+alpha = 0.02;
 
 
 
@@ -22,7 +22,7 @@ alpha = 0.01;
 error_all = [];
 v = cell(N,1);
 
-eta = 0.8;
+eta = 0.0;
 
 
 
@@ -55,30 +55,37 @@ end
 U_w = cellfun(@(x)zeros(size(x)),U,'UniformOutput',0);
 t_w = 0;
 flag = false;
+U_old = U;
 
 for t = 1:300
     
    ind_perm = randperm(D);
    ind_num = 0;
    
-   
    tic,
    for batch = ind_perm
        ind_num = ind_num + 1;
+       
+       if mod(ind_num,100) == 1
+           G_full = gradient_full(prec,U,X);
+           U_old = U;
+       end
        
        c = cell(N,1);
        [c{:}] = ind2sub(n_d,batch);
        n = cellfun(@(x,y)x{y}, n_all,c,'UniformOutput',false);
        U_tmp = cellfun(@(x,y)y(x,:), n,U,'UniformOutput',false);
+       U_tmp_old = cellfun(@(x,y)y(x,:), n,U_old,'UniformOutput',false);
 %        U_tmp = cellfun(@(x,y)y(x,:), n,U,'UniformOutput',false);
 
        X_tmp = X(n{:});
        G = gradient_full(prec,U_tmp,X_tmp);
+       G_tilde = gradient_full(prec,U_tmp_old,X_tmp);
 %        G = gradient_full(prec,U_tmp,X_tmp);
        s_tmp = size(X_tmp);
        p = num2cell(prod(s_tmp)./s_tmp.');
        
-       v = cellfun(@update_v, G,v,p,n,'UniformOutput',false);
+       v = cellfun(@update_v, G,v,p,n,G_tilde,G_full,'UniformOutput',false);
        U = cellfun(@update_U,U,v,n,'UniformOutput',false);
        
        if flag == true && mod(ind_num,2) == 0
@@ -110,7 +117,7 @@ for t = 1:300
    error_all = [error_all,error];
    
    normX = norm(X(:));
-   if error/normX<=1e-3||t>=12
+   if error/normX<=1e-3
 %       U_w =  cellfun(@(x,y)(t_w*y+x)/(t_w+1),nU,U_w,'UniformOutput',0);
 %       t_w = t_w + 1;
       flag = true;
@@ -134,10 +141,10 @@ for t = 1:300
 end
 
 
-function v = update_v(G,v,p,n)
-%     v(n,:) = alpha*G/p + eta*v(n,:);
+function v = update_v(G,v,p,n,G_tilde,G_full)
+    v(n,:) = alpha*(G/p + G_tilde/p - G_full(n,:)/2500) + eta*v(n,:);
 %     v(n,:) = min(max(alpha*double(G)/p + eta*v(n,:),-1),1);
-    v(n,:) = min(max(alpha*(G)/p + eta*v(n,:),-1),1);
+    v(n,:) = min(max(v(n,:),-1),1);
 %     v(n,:) = min(max(alpha*G + eta*v(n,:),-1),1);
 end
 

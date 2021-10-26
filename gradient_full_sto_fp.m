@@ -1,4 +1,4 @@
-function G = gradient_full_sto(prec,U,X)
+function G = gradient_full_sto_fp(prec,U,X,fp)
 
 N = length(U);
 
@@ -9,13 +9,13 @@ end
 
 r = size(U{1},2);
 
-fp.format = 'h';
-fp.format = 'c';
-fp.params = [4,7] ;
+% fp.format = 'h';
+% fp.format = 'c';
+% fp.params = [4,7] ;
 % fp.params = [5,3] ;
 
-fp.round = 5;
-
+% fp.round = 5;
+U_old = U;
 if prec == 0
     G = cellfun(@(x)chop(x,fp),G,'UniformOutput',0);
     U = cellfun(@(x)chop(x,fp),U,'UniformOutput',0);
@@ -41,8 +41,10 @@ for j = 1:N
     if prec == 0
        M_X = chop(M_X,fp); 
        M_T = chop(M_T,fp); 
-       G{j} = chop(2*(M_T-M_X),fp);
-       G{j} = chop(G{j}.'*V,fp);
+       G{j} = chop((M_T-M_X),fp);
+       G{j} = chop(2*chop(G{j}.'*V,fp),fp);
+       
+%        G{j} = chop(chop(2*M_T.'*V,fp) - chop(2*M_X.'*V,fp),fp);
 %        G{j} = chop(2*(M_T-M_X).'*V,fp);
     else
        G{j} = 2*(M_T-M_X).'*V;

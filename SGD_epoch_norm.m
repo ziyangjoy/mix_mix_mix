@@ -1,4 +1,4 @@
-function [U,error_all] = SGD_epoch(prec,U,X)
+function [U,error_all] = SGD_epoch_norm(prec,U,X,w)
 
 rng(12);
 
@@ -14,13 +14,14 @@ M = ceil(s*0.1);
 
 
 
-alpha = 0.01;
+alpha = 0.005;
 
 
 
 
 error_all = [];
 v = cell(N,1);
+
 
 eta = 0.8;
 
@@ -48,19 +49,19 @@ for j = 1:N
 end
 
 if prec == 0
-    v = cellfun(@(x)half(x),v,'UniformOutput',0);
-    U = cellfun(@(x)half(x),U,'UniformOutput',0);
+%     v = cellfun(@(x)half(x),v,'UniformOutput',0);
+%     U = cellfun(@(x)half(x),U,'UniformOutput',0);
 end
 
-U_w = cellfun(@(x)zeros(size(x)),U,'UniformOutput',0);
-t_w = 0;
-flag = false;
 
 for t = 1:300
     
    ind_perm = randperm(D);
-   ind_num = 0;
    
+   ind_num = 0;
+   for j = 1:N
+       v{j} = zeros(size(U{j})) ;
+   end
    
    tic,
    for batch = ind_perm
@@ -70,22 +71,23 @@ for t = 1:300
        [c{:}] = ind2sub(n_d,batch);
        n = cellfun(@(x,y)x{y}, n_all,c,'UniformOutput',false);
        U_tmp = cellfun(@(x,y)y(x,:), n,U,'UniformOutput',false);
-%        U_tmp = cellfun(@(x,y)y(x,:), n,U,'UniformOutput',false);
 
        X_tmp = X(n{:});
-       G = gradient_full(prec,U_tmp,X_tmp);
-%        G = gradient_full(prec,U_tmp,X_tmp);
+%        G = gradient_full_ownfunc(prec,U_tmp,X_tmp);
+       G = gradient_full_weight(prec,U_tmp,X_tmp,w);
        s_tmp = size(X_tmp);
        p = num2cell(prod(s_tmp)./s_tmp.');
        
        v = cellfun(@update_v, G,v,p,n,'UniformOutput',false);
-       U = cellfun(@update_U,U,v,n,'UniformOutput',false);
+       nU = cellfun(@update_U,U,v,n,'UniformOutput',false);
        
-       if flag == true && mod(ind_num,2) == 0
-            nU = cellfun(@(x)double(x),U,'UniformOutput',0);
-            U_w =  cellfun(@(x,y)(t_w*y+x)/(t_w+1),nU,U_w,'UniformOutput',0);
-            t_w = t_w + 1;
-       end
+       %update w
+%        for j = 1:N
+%            tmp = sqrt(vecnorm(nU{j}(n{j},:)).^2 - vecnorm(U{j}(n{j},:)).^2 + 25)/5;
+%            nU{j} = nU{j}./tmp;
+%            w = w.*tmp.';
+%        end
+       U = nU;
        
 %        if mod(ind_num,100) == 0
 %            
@@ -101,28 +103,22 @@ for t = 1:300
 
         
    end
+   for j = 1:N
+       tmp = vecnorm(U{j})/5;
+       U{j} = U{j}./tmp;
+       w = w.*tmp.';
+   end
+   
    nU = cellfun(@(x)double(x),U,'UniformOutput',0);
-   nX = ktensor(nU);
+   nX = ktensor(w, nU);
    
 %    U_all{t} = nU;
 
    error = norm(minus(full(X),full(nX)));
    error_all = [error_all,error];
    
-   normX = norm(X(:));
-   if error/normX<=1e-3||t>=12
-%       U_w =  cellfun(@(x,y)(t_w*y+x)/(t_w+1),nU,U_w,'UniformOutput',0);
-%       t_w = t_w + 1;
-      flag = true;
-%       U = U_w;
-   end
-   
-   nX_w = ktensor(U_w);
-   error_w = norm(minus(full(X),full(nX_w)));
-   
    disp(['epoch = ', num2str(t)]);
    disp(['error = ', num2str(error)]);
-   disp(['error_w = ', num2str(error_w)]);
    disp(['time = ', num2str(toc)]);
    disp([' ']);
 %    toc,
@@ -136,8 +132,7 @@ end
 
 function v = update_v(G,v,p,n)
 %     v(n,:) = alpha*G/p + eta*v(n,:);
-%     v(n,:) = min(max(alpha*double(G)/p + eta*v(n,:),-1),1);
-    v(n,:) = min(max(alpha*(G)/p + eta*v(n,:),-1),1);
+    v(n,:) = min(max(alpha*G/p + eta*v(n,:),-.1),.1);
 %     v(n,:) = min(max(alpha*G + eta*v(n,:),-1),1);
 end
 

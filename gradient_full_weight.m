@@ -1,4 +1,4 @@
-function G = gradient_full(prec,U,X)
+function G = gradient_full_weight(prec,U,X,w)
 
 N = length(U);
 
@@ -16,7 +16,7 @@ if prec == 0
     G = cellfun(@(x)half(x),G,'UniformOutput',0);
 end
 
-T = double(tensor(ktensor(U)));
+T = double(tensor(ktensor(w,U)));
 
 
 
@@ -30,17 +30,18 @@ for j = 1:N
 %     M_X = double(tenmat(X,[1:j-1,j+1:N],[j]));
 %     M_T = double(tenmat(T,[1:j-1,j+1:N],[j]));
     
-    tmp = U([N:-1:j+1,j-1:-1:1]);
+%     tmp = U([N:-1:j+1,j-1:-1:1]);
 %     V = khatrirao_Z(tmp);
 
-    V = ones(1,r);
+    V = w.';
     for k = [N:-1:j+1,j-1:-1:1]
         V = khatrirao(V,U{k});
     end
+    
 %     
     if prec == 0
        V = half(V);
-       M_X = half(M_X);
+%        M_X = half(M_X);
        M_T = half(M_T);
     end
     
@@ -49,8 +50,8 @@ for j = 1:N
 %     G{j} = P.'*V*diag(1./vecnorm(V).^2);
     G{j} = 2*P.'*V;
     
-%     if prec == 0
-%        G{j} = half(G{j}); 
-%     end
+    if prec == 0
+       G{j} = double(G{j}); 
+    end
     
 end

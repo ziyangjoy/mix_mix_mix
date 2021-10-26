@@ -1,4 +1,4 @@
-function [U,error_all] = SGD_epoch(prec,U,X)
+function [U,error_all] = SGD_epoch_weight_decay(prec,U,X)
 
 rng(12);
 
@@ -23,7 +23,7 @@ error_all = [];
 v = cell(N,1);
 
 eta = 0.8;
-
+lamb = 0.0001;
 
 
 n_all = cell(N,1);
@@ -78,7 +78,7 @@ for t = 1:300
        s_tmp = size(X_tmp);
        p = num2cell(prod(s_tmp)./s_tmp.');
        
-       v = cellfun(@update_v, G,v,p,n,'UniformOutput',false);
+       v = cellfun(@update_v, G,v,p,n,U_tmp,'UniformOutput',false);
        U = cellfun(@update_U,U,v,n,'UniformOutput',false);
        
        if flag == true && mod(ind_num,2) == 0
@@ -110,7 +110,7 @@ for t = 1:300
    error_all = [error_all,error];
    
    normX = norm(X(:));
-   if error/normX<=1e-3||t>=12
+   if error/normX<=1e-3
 %       U_w =  cellfun(@(x,y)(t_w*y+x)/(t_w+1),nU,U_w,'UniformOutput',0);
 %       t_w = t_w + 1;
       flag = true;
@@ -134,10 +134,10 @@ for t = 1:300
 end
 
 
-function v = update_v(G,v,p,n)
-%     v(n,:) = alpha*G/p + eta*v(n,:);
+function v = update_v(G,v,p,n,U)
+    v(n,:) = alpha*(G/p + lamb*U) + eta*v(n,:);
 %     v(n,:) = min(max(alpha*double(G)/p + eta*v(n,:),-1),1);
-    v(n,:) = min(max(alpha*(G)/p + eta*v(n,:),-1),1);
+    v(n,:) = min(max(v(n,:),-1),1);
 %     v(n,:) = min(max(alpha*G + eta*v(n,:),-1),1);
 end
 

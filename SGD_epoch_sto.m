@@ -1,4 +1,4 @@
-function [U,error_all] = SGD_epoch(prec,U,X)
+function [U,error_all] = SGD_epoch_sto(prec,U,X)
 
 rng(12);
 
@@ -8,11 +8,12 @@ s = size(X);
 N = length(s);
 r = size(U{1},2);
 
-% M = 5*ones(N,1);
-M = ceil(s*0.1);
+M = 5*ones(N,1);
+% M = ceil(s*0.1);
 % M = [10,5,2];
 
-
+fp.format = 'h';
+fp.round = 5;
 
 alpha = 0.01;
 
@@ -48,8 +49,8 @@ for j = 1:N
 end
 
 if prec == 0
-    v = cellfun(@(x)half(x),v,'UniformOutput',0);
-    U = cellfun(@(x)half(x),U,'UniformOutput',0);
+    v = cellfun(@(x)chop(x,fp),v,'UniformOutput',0);
+    U = cellfun(@(x)chop(x,fp),U,'UniformOutput',0);
 end
 
 U_w = cellfun(@(x)zeros(size(x)),U,'UniformOutput',0);
@@ -70,18 +71,17 @@ for t = 1:300
        [c{:}] = ind2sub(n_d,batch);
        n = cellfun(@(x,y)x{y}, n_all,c,'UniformOutput',false);
        U_tmp = cellfun(@(x,y)y(x,:), n,U,'UniformOutput',false);
-%        U_tmp = cellfun(@(x,y)y(x,:), n,U,'UniformOutput',false);
 
        X_tmp = X(n{:});
-       G = gradient_full(prec,U_tmp,X_tmp);
-%        G = gradient_full(prec,U_tmp,X_tmp);
+%        G = gradient_full_ownfunc(prec,U_tmp,X_tmp);
+       G = gradient_full_sto(prec,U_tmp,X_tmp);
        s_tmp = size(X_tmp);
        p = num2cell(prod(s_tmp)./s_tmp.');
        
        v = cellfun(@update_v, G,v,p,n,'UniformOutput',false);
        U = cellfun(@update_U,U,v,n,'UniformOutput',false);
        
-       if flag == true && mod(ind_num,2) == 0
+       if flag == true && mod(ind_num,1) == 0
             nU = cellfun(@(x)double(x),U,'UniformOutput',0);
             U_w =  cellfun(@(x,y)(t_w*y+x)/(t_w+1),nU,U_w,'UniformOutput',0);
             t_w = t_w + 1;
@@ -109,8 +109,12 @@ for t = 1:300
    error = norm(minus(full(X),full(nX)));
    error_all = [error_all,error];
    
+   if t>1 && error > error_all(t-1)*1
+      alpha = max(alpha * 0.1, 0.1^6);
+   end
+   
    normX = norm(X(:));
-   if error/normX<=1e-3||t>=12
+   if error/normX<=3e-3
 %       U_w =  cellfun(@(x,y)(t_w*y+x)/(t_w+1),nU,U_w,'UniformOutput',0);
 %       t_w = t_w + 1;
       flag = true;
@@ -136,13 +140,18 @@ end
 
 function v = update_v(G,v,p,n)
 %     v(n,:) = alpha*G/p + eta*v(n,:);
-%     v(n,:) = min(max(alpha*double(G)/p + eta*v(n,:),-1),1);
-    v(n,:) = min(max(alpha*(G)/p + eta*v(n,:),-1),1);
+    v(n,:) = chop(min(max(alpha*G/p + eta*v(n,:),-1),1),fp);
+    if prec == 0
+       v(n,:) = chop(v(n,:),fp); 
+    end
 %     v(n,:) = min(max(alpha*G + eta*v(n,:),-1),1);
 end
 
 function U = update_U(U,v,n)
     U(n,:) = U(n,:) - v(n,:);
+    if prec == 0
+       U(n,:) = chop(U(n,:),fp); 
+    end
 end
 end
 
