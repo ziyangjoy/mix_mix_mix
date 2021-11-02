@@ -10,40 +10,43 @@ N = 4;
 
 
 size_t = 50;
-r = 30;
+r = 40;
 
-% s = [80,50,30,20];
+% s = [80,50,20,20];
 s = [size_t,size_t,size_t,size_t,size_t];
 
 fp.format = 'c';
 fp.params = [4,7] ;
 
 fp.round = 5;
+fp.format = 'h';
 
 A = cell(N,1);
 for i = 1:N
     A{i} = randn(s(i),r);
-    A{i} = chop(A{i},fp);
-%     A{i} = A{i}./vecnorm(A{i});
+%     A{i} = randi(3,s(i),r) - 2;
+%     A{i} = chop(A{i},fp);
+%     A{i} = A{i}./vecnorm(A{i})*5;
 %       A{i} = (randi(7,s(i),r) - 4)/3;
 %     A{i} = 2*rand(s(i),r)-1;
 %     A{i} = A{i}/max(A{i}(:));
 end
 X = ktensor(A);
 X = double(tensor(X));
-c = 15/max(abs(X(:)));
-X = X*c;
+% X = chop(X,fp);
 
-X = X + 0.000*randn(s(1:N));
+c = 1;
+% c = 62/max(abs(X(:)));
+% X = X*c;
+
+X = X + 0.0*randn(s(1:N));
 
 
 U = cell(N,1);
-
-% w = 1;
-% r = r + 5;
+r = r + 0;
 for i = 1:N
-    U{i} = A{i}*nthroot(c,N) + 0.01*randn(s(i),r);
-%     U{i} = randn(s(i),r)/2;
+%     U{i} = A{i}*nthroot(c,N) + 0.01*randn(s(i),r);
+    U{i} = randn(s(i),r);
 %     w = w.*vecnorm(U{i}).'/5;
 %     U{i} = U{i}./vecnorm(U{i})*5;
 %     U{i} = U{i}/max(U{i}(:));
@@ -56,7 +59,8 @@ end
 
 % [U_half,error_half] = SGD(2,U,X);
 % [U_full,error_full] = SGD_epoch_sto(0,U,X);
-[U_full,error_full] = ADAM_epoch_unbiased(0,U,X);
+[U_full,error_full] = ADAM_epoch_unbiased_j(2,U,X);
+% [U_full,error_full] = ADAM_epoch_unbiased(0,U,X);
 % [U_full,error_full] = ADAM_epoch(2,U,X);
 
 % [U_full,error_full] = SGD_epoch(2,U,X);

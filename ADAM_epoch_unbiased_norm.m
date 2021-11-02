@@ -1,4 +1,4 @@
-function [U,error_all] = ADAM_epoch_unbiased(prec,U,X)
+function [U,error_all] = ADAM_epoch_unbiased_norm(prec,U,X)
 
 rng(12);
 
@@ -8,21 +8,20 @@ s = size(X);
 N = length(s);
 r = size(U{1},2);
 
-% M = 5*ones(N,1);
-M = ceil(s*0.1);
-% M = [5,5,2];
+M = 5*ones(N,1);
+% M = ceil(s*0.1);
+% M = [10,5,2];
 
 fp.format = 'c';
 fp.params = [4,7] ;
 fp.round = 5;
 
-fp.format = 'h';
+% fp.format = 'h';
 
 alpha = 1e-4;
+gamma = 1e-5;
 beta_1 = 0.9;
-beta_2 = 0.99;
-% beta_1 = 0.9;
-% beta_2 = 0.999;
+beta_2 = 0.999;
 
 eta = 0.8;
 epsilon = 1e-8;
@@ -66,7 +65,7 @@ U_w = cellfun(@(x)zeros(size(x)),U,'UniformOutput',0);
 t_w = 0;
 flag = false;
 fail = 0;
-ind_total = 0;
+
 
 for t = 1:300
     
@@ -82,7 +81,6 @@ for t = 1:300
 %    alpha = 0.1/t;
    for batch = ind_perm
        ind_num = ind_num + 1;
-       ind_total = ind_total + 1;
        
        c = cell(N,1);
        [c{:}] = ind2sub(n_d,batch);
@@ -107,23 +105,24 @@ for t = 1:300
        p = num2cell(prod(s_tmp)./s_tmp.');
        
        for j = 1:N
-           num{j}(n{j}) = num{j}(n{j}) + 1;
-%             U{j} = chop(U{j},fp);
-%             num{j}(n{j}) = num{j}(n{j}) + p{j};
+            num{j}(n{j}) = num{j}(n{j}) + p{j};
            
-%             m{j}(n{j},:) = beta_1*m{j}(n{j},:) + (1-beta_1)*double(G{j})/prod(s_tmp);
-%             v{j}(n{j},:) = beta_2*v{j}(n{j},:) + (1-beta_2)*(double(G{j})/prod(s_tmp)).^2; 
             m{j}(n{j},:) = beta_1*m{j}(n{j},:) + (1-beta_1)*double(G{j})/p{j};
             v{j}(n{j},:) = beta_2*v{j}(n{j},:) + (1-beta_2)*(double(G{j})/p{j}).^2; 
             
             m_tilde{j}(n{j},:) = m{j}(n{j},:)./(1-beta_1.^num{j}(n{j}));
             v_tilde{j}(n{j},:) = v{j}(n{j},:)./(1-beta_2.^num{j}(n{j}));
             
-%             m_tilde{j}(n{j},:) = m{j}(n{j},:)./(1-beta_1.^ind_total);
-%             v_tilde{j}(n{j},:) = v{j}(n{j},:)./(1-beta_2.^ind_total);
+            tmp = vecnorm(U{j}).^2;
+            tmp = tmp(:,1:r-1) - tmp(:,2:r);
+            tmp_1 = [tmp.*U{j}(:,1:r-1), zeros(s(j),1)];
+            tmp_2 = [zeros(s(j),1),tmp.*U{j}(:,2:r)];
+            
+%             tmp_1 = [tmp, zeros(s(j),1)];
+%             tmp_2 = [zeros(s(j),1), tmp];
             
             U{j}(n{j},:) = U{j}(n{j},:) - alpha*(m_tilde{j}(n{j},:)./(sqrt(v_tilde{j}(n{j},:))+epsilon));
-            
+            U{j} = U{j} - gamma * (tmp_1 - tmp_2);
        end
 
        
@@ -152,14 +151,14 @@ for t = 1:300
        fail = fail + 1;
        if fail == 1
             fail = 0;
-            alpha = max(alpha * 0.1, 0.1^8);
+            alpha = max(alpha * 0.1, 0.1^5);
        end
       
    end
 %    alpha = 0.1/t;
    
    normX = norm(X(:));
-   if error/normX<=1e-4 
+   if error/normX<=1e-3 
 %       U_w =  cellfun(@(x,y)(t_w*y+x)/(t_w+1),nU,U_w,'UniformOutput',0);
 %       t_w = t_w + 1;
       flag = true;

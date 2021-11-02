@@ -1,4 +1,4 @@
-function [U,error_all] = ADAM_epoch_unbiased(prec,U,X)
+function [U,error_all] = ADAM_epoch_unbiased_j(prec,U,X)
 
 rng(12);
 
@@ -10,19 +10,18 @@ r = size(U{1},2);
 
 % M = 5*ones(N,1);
 M = ceil(s*0.1);
-% M = [5,5,2];
+% M = [10,5,2];
 
 fp.format = 'c';
 fp.params = [4,7] ;
 fp.round = 5;
 
-fp.format = 'h';
+% fp.format = 'h';
 
-alpha = 1e-4;
+alpha = 1e-1;
+gamma = 1e-5;
 beta_1 = 0.9;
 beta_2 = 0.99;
-% beta_1 = 0.9;
-% beta_2 = 0.999;
 
 eta = 0.8;
 epsilon = 1e-8;
@@ -66,7 +65,7 @@ U_w = cellfun(@(x)zeros(size(x)),U,'UniformOutput',0);
 t_w = 0;
 flag = false;
 fail = 0;
-ind_total = 0;
+
 
 for t = 1:300
     
@@ -82,48 +81,37 @@ for t = 1:300
 %    alpha = 0.1/t;
    for batch = ind_perm
        ind_num = ind_num + 1;
-       ind_total = ind_total + 1;
        
        c = cell(N,1);
        [c{:}] = ind2sub(n_d,batch);
        
-       mul = 1;
        n = cellfun(@(x,y)x{y}, n_all,c,'UniformOutput',false);
-       U_tmp = cellfun(@(x,y)y(x,:)/mul, n,U,'UniformOutput',false);
-%        U_tmp = cellfun(@(x,y)y(x,:), n,U,'UniformOutput',false);
-
-       X_tmp = X(n{:})/mul^N;
-       G = gradient_full_sto_fp(prec,U_tmp,X_tmp,fp);
-       G = cellfun(@(x)x*mul^N, G,'UniformOutput',false);
        
+       X_tmp = X(n{:});
+       U_tmp = cellfun(@(x,y)y(x,:), n,U,'UniformOutput',false);
 
-       for k = 1:max_k
-           G_tmp = gradient_full_sto_fp(prec,U_tmp,X_tmp,fp);
-           G = cellfun(@(x,y)(k*x+y)/(k+1), G, G_tmp,'UniformOutput',false);
-       end
-%        G = gradient_full_sto(prec,U_tmp,X_tmp);
+
+       
+       
        
        s_tmp = size(X_tmp);
        p = num2cell(prod(s_tmp)./s_tmp.');
        
        for j = 1:N
-           num{j}(n{j}) = num{j}(n{j}) + 1;
-%             U{j} = chop(U{j},fp);
+            U_tmp = cellfun(@(x,y)y(x,:), n,U,'UniformOutput',false);
+            G = gradient_full_sto_fp_j(prec,U_tmp,X_tmp,fp,j);
 %             num{j}(n{j}) = num{j}(n{j}) + p{j};
+            num{j}(n{j}) = num{j}(n{j}) + 1;
            
-%             m{j}(n{j},:) = beta_1*m{j}(n{j},:) + (1-beta_1)*double(G{j})/prod(s_tmp);
-%             v{j}(n{j},:) = beta_2*v{j}(n{j},:) + (1-beta_2)*(double(G{j})/prod(s_tmp)).^2; 
-            m{j}(n{j},:) = beta_1*m{j}(n{j},:) + (1-beta_1)*double(G{j})/p{j};
-            v{j}(n{j},:) = beta_2*v{j}(n{j},:) + (1-beta_2)*(double(G{j})/p{j}).^2; 
+            m{j}(n{j},:) = beta_1*m{j}(n{j},:) + (1-beta_1)*double(G)/p{j};
+            v{j}(n{j},:) = beta_2*v{j}(n{j},:) + (1-beta_2)*(double(G)/p{j}).^2; 
             
             m_tilde{j}(n{j},:) = m{j}(n{j},:)./(1-beta_1.^num{j}(n{j}));
             v_tilde{j}(n{j},:) = v{j}(n{j},:)./(1-beta_2.^num{j}(n{j}));
             
-%             m_tilde{j}(n{j},:) = m{j}(n{j},:)./(1-beta_1.^ind_total);
-%             v_tilde{j}(n{j},:) = v{j}(n{j},:)./(1-beta_2.^ind_total);
             
             U{j}(n{j},:) = U{j}(n{j},:) - alpha*(m_tilde{j}(n{j},:)./(sqrt(v_tilde{j}(n{j},:))+epsilon));
-            
+
        end
 
        
@@ -159,7 +147,7 @@ for t = 1:300
 %    alpha = 0.1/t;
    
    normX = norm(X(:));
-   if error/normX<=1e-4 
+   if error/normX<=2e-4 && prec == 0
 %       U_w =  cellfun(@(x,y)(t_w*y+x)/(t_w+1),nU,U_w,'UniformOutput',0);
 %       t_w = t_w + 1;
       flag = true;
